@@ -27,6 +27,10 @@ import ddmd.root.rootobject;
 import ddmd.target;
 import ddmd.tokens;
 import ddmd.visitor;
+import ddmd.nspace;
+import ddmd.dmodule;
+
+int indent = 0;
 
 /* Do mangling for C++ linkage.
  * No attempt is made to support mangling of templates, operator
@@ -65,16 +69,44 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 assert(0);
         }
 
-        bool substitute(RootObject p)
+        bool componentsContain(RootObject p)
         {
-            //printf("substitute %s\n", p ? p.toChars() : null);
+            Type t = cast(Type)p;
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
-                    //printf("    component[%d] = %s\n", i, components[i] ? components[i].toChars() : null);
-                    if (p == components[i])
+                    import core.stdc.string : strcmp;
+                    if (strcmp(p.toChars(), components[i].toChars()) == 0)
                     {
-                        //printf("\tmatch\n");
+                        return true;
+                    }
+                }
+            return false;
+        }
+
+        bool substitute(RootObject p)
+        {
+            printf("substitute <%s>\n", p ? p.toChars() : null);
+            Type t = cast(Type)p;
+            printf("t.deco = '%s'\n", t.deco);
+            if (components_on)
+                for (size_t i = 0; i < components.dim; i++)
+                {
+                    printf("    component[%d] = <%s>\n", i, components[i] ? components[i].toChars() : null);
+                    //p.myEquals(components[i]);
+                    //import core.stdc.string : strcmp;
+                    if (strcmp(p.toChars(), "pair!(void*, void*)") == 0 && strcmp(components[i].toChars(), "pair!(void*, void*)") == 0) {//pair!(void*, void*)
+                        printf("---------------MATCH ----------------\n");
+                        // Found problem, the components[i] has no .deco field assigned
+                        // need to find where it is created and sort this out
+                        p.myEquals(components[i]);
+                    }
+                    //if (p == components[i])
+                    //if (p.myEquals(components[i]))
+                    import core.stdc.string : strcmp;
+                    if (strcmp(p.toChars(), components[i].toChars()) == 0) //pair!(void*, void*)
+                    {
+                        printf("\tmatch\n");
                         /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
                          */
                         buf.writeByte('S');
@@ -103,22 +135,33 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void store(RootObject p)
         {
-            //printf("store %s\n", p ? p.toChars() : "null");
+            printf("----------STORING---------------------\n");
+            printf("store %s\n", p ? p.toChars() : "null");
             if (components_on)
                 components.push(p);
+            if (components_on)
+                for (size_t i = 0; i < components.dim; i++)
+                    printf("    component[%d] = <%s>\n", i, components[i] ? components[i].toChars() : null);
+            printf("----------FINISHED STORING------------\n");
         }
 
         void source_name(Dsymbol s, bool skipname = false)
         {
-            //printf("source_name(%s)\n", s.toChars());
+            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+            indent += 4;
             TemplateInstance ti = s.isTemplateInstance();
+            printf("% *c source_name(%s) (ti = %s) (line %d)\n", indent, ' ', s.toChars(), ti ? ti.toChars() : null, __LINE__);
             if (ti)
             {
+                printf("% *c source_name(%s) (ti.temdecl = %s) (line %d)\n", indent, ' ', s.toChars(), ti.tempdecl.toChars(), __LINE__);
                 if (!skipname && !substitute(ti.tempdecl))
                 {
-                    store(ti.tempdecl);
+                    printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                    // TODO fix must not add that prob
+                    //store(ti.tempdecl);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
+                    printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
                 }
                 buf.writeByte('I');
                 bool is_var_arg = false;
@@ -130,6 +173,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     TemplateTupleParameter tt = null;
                     if (!is_var_arg)
                     {
+                        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                         TemplateDeclaration td = ti.tempdecl.isTemplateDeclaration();
                         assert(td);
                         tp = (*td.parameters)[i];
@@ -142,25 +186,30 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                      */
                     if (tt)
                     {
+                        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                         buf.writeByte('I');
                         is_var_arg = true;
                         tp = null;
                     }
                     if (tv)
                     {
+                        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                         // <expr-primary> ::= L <type> <value number> E                   # integer literal
                         if (tv.valType.isintegral())
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             Expression e = isExpression(o);
                             assert(e);
                             buf.writeByte('L');
                             tv.valType.accept(this);
                             if (tv.valType.isunsigned())
                             {
+                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                                 buf.printf("%llu", e.toUInteger());
                             }
                             else
                             {
+                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                                 sinteger_t val = e.toInteger();
                                 if (val < 0)
                                 {
@@ -173,27 +222,40 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         }
                         else
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             s.error("Internal Compiler Error: C++ %s template value parameter is not supported", tv.valType.toChars());
                             fatal();
                         }
                     }
                     else if (!tp || tp.isTemplateTypeParameter())
                     {
+                        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                        Dsymbol p = s.toParent();
+                        printf("% *c source_name(%s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), p ? p.toChars() : null, __LINE__);
                         Type t = isType(o);
                         assert(t);
                         t.accept(this);
+                        if (s && s.isTemplateInstance()) {
+                            if (!(s.ident == Id.std && is_initial_qualifier(s)) && !componentsContain(s)) {
+                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                                store(s);
+                            }
+                        }
                     }
                     else if (tp.isTemplateAliasParameter())
                     {
+                        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                         Dsymbol d = isDsymbol(o);
                         Expression e = isExpression(o);
                         if (!d && !e)
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             s.error("Internal Compiler Error: %s is unsupported parameter for C++ template: (%s)", o.toChars());
                             fatal();
                         }
                         if (d && d.isFuncDeclaration())
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             bool is_nested = d.toParent() && !d.toParent().isModule() && (cast(TypeFunction)d.isFuncDeclaration().type).linkage == LINKcpp;
                             if (is_nested)
                                 buf.writeByte('X');
@@ -205,6 +267,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         }
                         else if (e && e.op == TOKvar && (cast(VarExp)e).var.isVarDeclaration())
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             VarDeclaration vd = (cast(VarExp)e).var.isVarDeclaration();
                             buf.writeByte('L');
                             mangle_variable(vd, true);
@@ -212,8 +275,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         }
                         else if (d && d.isTemplateDeclaration() && d.isTemplateDeclaration().onemember)
                         {
+                            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                             if (!substitute(d))
                             {
+                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                                 cpp_mangle_name(d, false);
                             }
                         }
@@ -231,6 +296,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 }
                 if (is_var_arg)
                 {
+                    printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
                     buf.writeByte('E');
                 }
                 buf.writeByte('E');
@@ -238,38 +304,78 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             }
             else
             {
+                //Nspace ns = s.isNspace();
+                Dsymbol p = s.toParent();
+                //Module ms = s.isModule();
+                //Module ps = p.isModule();
+                FuncDeclaration f = s.isFuncDeclaration();
+                // Mangling for static functions in namespaces and plain
+                if (f && f.isStatic() && p && (p.isNspace() || p.isModule()))
+                    buf.printf("L");
+                //if (p && p.isModule())
+                //    printf("% *c source_name(%s) (s.ident = %s) IS MODULE  (buf = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), buf.peekString(), __LINE__);
+                //else
+                //    printf("% *c source_name(%s) (s.ident = %s) IS NOT MODULE  (buf = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), buf.peekString(), __LINE__);
+                //bool checkStatic = f ? f.isStatic() : false;
+                //if (checkStatic)
+                //    printf("% *c source_name(%s) (s.ident = %s) (buf = %s) IS STATIC (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), buf.peekString(), __LINE__);
+                //printf("% *c source_name(%s) (s.ident = %s) (buf = %s) (namespace = %s) (parent = %s)"
+                // "(s module = %s) (p module = %s) (func = %s) (line %d)\n", indent, ' ', s.toChars(),
+                // s ? s.ident.toChars() : null, buf.peekString(), ns ? ns.toChars() : null,
+                // p ? p.ident.toChars() : null, ms ? ms.toChars() : null, ps ? ps.toChars() : null,
+                // f ? f.toChars() : null, __LINE__);
                 const(char)* name = s.ident.toChars();
                 buf.printf("%d%s", strlen(name), name);
+                printf("% *c source_name(%s) (s.ident = %s) (buf = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), buf.peekString(), __LINE__);
             }
         }
 
         void prefix_name(Dsymbol s)
         {
-            //printf("prefix_name(%s)\n", s.toChars());
+            printf("prefix_name(%s)\n", s.toChars());
+            printf("% *c in prefix_name 1 (s = %s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
             if (!substitute(s))
             {
                 Dsymbol p = s.toParent();
                 if (p && p.isTemplateInstance())
                 {
+                    //printf("% *c in prefix_name 1.1 () (line %d)\n", indent, ' ', __LINE__);
+                    //printf("% *c in prefix_name 1.1 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
+                    printf("% *c in prefix_name 1.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
+                    // TODO: fixed substitution
+                    store(s);
                     s = p;
                     if (exist(p.isTemplateInstance().tempdecl))
                     {
+                        printf("% *c in prefix_name 1.1.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                         p = null;
                     }
                     else
                     {
                         p = p.toParent();
+                        printf("% *c in prefix_name 1.1.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                     }
                 }
                 if (p && !p.isModule())
                 {
-                    if (p.ident == Id.std && is_initial_qualifier(p))
+                    //printf("% *c in prefix_name 1.2 (line %d)\n", indent, ' ', __LINE__);
+                    //printf("% *c in prefix_name 1.2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
+                    printf("% *c in prefix_name 1.2 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
+                    if (p.ident == Id.std && is_initial_qualifier(p)) {
+                        printf("% *c in prefix_name 1.2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                         buf.writestring("St");
-                    else
+                    }
+                    else {
+                        printf("% *c in prefix_name 1.2.2 (s = %s) (s.ident = %s) (p = %s) (s pointer = %p) (p pointer = %p) (s == p => %d) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(), s, p, s == p ? 1 : 0, __LINE__);
                         prefix_name(p);
+                    }
                 }
-                if (!(s.ident == Id.std && is_initial_qualifier(s)))
-                    store(s);
+                printf("% *c in prefix_name 2.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
+                //if (!(s.ident == Id.std && is_initial_qualifier(s))) {
+                //    //printf("% *c in prefix_name 2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
+                //    printf("% *c in prefix_name 2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
+                //    store(s);
+                //}
                 source_name(s);
             }
         }
@@ -292,7 +398,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void cpp_mangle_name(Dsymbol s, bool qualified)
         {
-            //printf("cpp_mangle_name(%s, %d)\n", s.toChars(), qualified);
+            printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
+            indent += 4;
             Dsymbol p = s.toParent();
             Dsymbol se = s;
             bool dont_write_prefix = false;
@@ -368,6 +475,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     }
                     else
                     {
+                        //Found next step
                         buf.writestring("St");
                         source_name(se);
                     }
@@ -418,7 +526,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void mangle_function(FuncDeclaration d)
         {
-            //printf("mangle_function(%s)\n", d.toChars());
+            printf("% *c mangle_function(%s) (line %d)\n", indent, ' ', d.toChars(), __LINE__);
+            indent += 4;
             /*
              * <mangled-name> ::= _Z <encoding>
              * <encoding> ::= <function name> <bare-function-type>
@@ -432,71 +541,124 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
             if (p && !p.isModule() && tf.linkage == LINKcpp && !ftd)
             {
+                printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                 buf.writeByte('N');
-                if (d.type.isConst())
+                if (d.type.isConst()) {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.writeByte('K');
+                }
                 prefix_name(p);
                 // See ABI 5.1.8 Compression
                 // Replace ::std::allocator with Sa
                 if (buf.offset >= 17 && memcmp(buf.data, "_ZN3std9allocator".ptr, 17) == 0)
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.remove(3, 14);
                     buf.insert(3, "Sa");
                 }
                 // Replace ::std::basic_string with Sb
                 if (buf.offset >= 21 && memcmp(buf.data, "_ZN3std12basic_string".ptr, 21) == 0)
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.remove(3, 18);
                     buf.insert(3, "Sb");
                 }
                 // Replace ::std with St
                 if (buf.offset >= 7 && memcmp(buf.data, "_ZN3std".ptr, 7) == 0)
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.remove(3, 4);
                     buf.insert(3, "St");
                 }
                 if (buf.offset >= 8 && memcmp(buf.data, "_ZNK3std".ptr, 8) == 0)
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.remove(4, 4);
                     buf.insert(4, "St");
                 }
                 if (d.isDtorDeclaration())
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     buf.writestring("D1");
                 }
                 else
                 {
+                    printf("% *c in mangle_function 1 (line %d)\n", indent, ' ', __LINE__);
                     source_name(d);
                 }
                 buf.writeByte('E');
+                printf("% *c exit mangle_function 1 (%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
+                //printf("exit mangle_function 1 (%s)\n", buf.peekString());
             }
             else if (ftd)
             {
-                source_name(p);
-                this.is_top_level = true;
-                tf.nextOf().accept(this);
-                this.is_top_level = false;
+                printf("% *c in mangle_function 2 (p = %s) (ftd = %s) (line %d)\n", indent, ' ', p.toChars(), ftd.toChars(), __LINE__);
+                /*       OLD IMPLEMENTATION       */
+                //source_name(p);
+                //this.is_top_level = true;
+                //tf.nextOf().accept(this);
+                //this.is_top_level = false;
+
+
+                /*         MY IMPLEMENTATION      */
+                // TODO
+                if (p && !p.isModule() && tf.linkage == LINKcpp)
+                {
+                    printf("% *c in mangle_function 2.1 (p = %s) (line %d)\n", indent, ' ', p.toChars(), __LINE__);
+                    // TODO (currently old implementation)
+                    source_name(p);
+                    this.is_top_level = true;
+                    tf.nextOf().accept(this);
+                    this.is_top_level = false;
+                }
+                else
+                {
+                    printf("% *c in mangle_function 2.2 (p = %s) (line %d)\n", indent, ' ', p.toChars(), __LINE__);
+                    source_name(p);
+                    this.is_top_level = true;
+                    tf.nextOf().accept(this);
+                    this.is_top_level = false;
+                }
+
             }
             else
             {
+                printf("% *c in mangle_function 3 (line %d)\n", indent, ' ', __LINE__);
                 source_name(d);
             }
             if (tf.linkage == LINKcpp) //Template args accept extern "C" symbols with special mangling
             {
+                printf("% *c in mangle_function 4 (line %d)\n", indent, ' ', __LINE__);
                 assert(tf.ty == Tfunction);
                 argsCppMangle(tf.parameters, tf.varargs);
+                printf("% *c exit mangle_function 4 (%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
             }
+
+            indent -= 4;
+            printf("% *c exit mangle_function rezult=(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
+            //printf("exit mangle_function rezult=(%s)\n", buf.peekString());
         }
 
         void argsCppMangle(Parameters* parameters, int varargs)
         {
+            //printf("in mangle_function 5\n");
+            printf("% *c in argsCppMangle 5 (line %d)\n", indent, ' ', __LINE__);
+            indent += 4;
             int paramsCppMangleDg(size_t n, Parameter fparam)
             {
+                //printf("in mangle_function 6\n");
+                printf("% *c in paramsCppMangleDg 6 (line %d)\n", indent, ' ', __LINE__);
+                indent += 4;
                 Type t = fparam.type.merge2();
-                if (fparam.storageClass & (STCout | STCref))
+                if (fparam.storageClass & (STCout | STCref)) {
+                    //printf("in mangle_function 6.1\n");
+                    printf("% *c in paramsCppMangleDg 6.1 (line %d)\n", indent, ' ', __LINE__);
                     t = t.referenceTo();
+                }
                 else if (fparam.storageClass & STClazy)
                 {
+                    //printf("in mangle_function 6.2\n");
+                    printf("% *c in paramsCppMangleDg 6.2 (line %d)\n", indent, ' ', __LINE__);
                     // Mangle as delegate
                     Type td = new TypeFunction(null, t, 0, LINKd);
                     td = new TypeDelegate(td);
@@ -504,6 +666,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 }
                 if (t.ty == Tsarray)
                 {
+                    //printf("in mangle_function 6.3\n");
+                    printf("% *c in paramsCppMangleDg 6.3 (line %d)\n", indent, ' ', __LINE__);
                     // Mangle static arrays as pointers
                     t.error(Loc(), "Internal Compiler Error: unable to pass static array to extern(C++) function.");
                     t.error(Loc(), "Use pointer instead.");
@@ -514,11 +678,20 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                  * then don't mark it const
                  */
                 this.is_top_level = true;
-                if ((t.ty == Tenum || t.ty == Tstruct || t.ty == Tpointer || t.isTypeBasic()) && t.isConst())
+                printf("% *c source_name(%s) (t = %s) (line %d)\n", indent, ' ', buf.peekString(), t.toChars(), __LINE__);
+                if ((t.ty == Tenum || t.ty == Tstruct || t.ty == Tpointer || t.isTypeBasic()) && t.isConst()) {
+                    printf("% *c source_name(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
                     t.mutableOf().accept(this);
-                else
+                }
+                else {
+                    // Found where it begins to break
+                    printf("% *c source_name(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
                     t.accept(this);
+                }
                 this.is_top_level = false;
+                //printf("exit mangle_function 6 (%s)\n", buf.peekString());
+                indent -= 4;
+                printf("% *c exit paramsCppMangleDg rezult=(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
                 return 0;
             }
 
@@ -528,6 +701,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 buf.writestring("z");
             else if (!parameters || !parameters.dim)
                 buf.writeByte('v'); // encode ( ) parameters
+
+            indent -= 4;
+            printf("% *c exit mangle_function rezult=(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
+            //printf("exit mangle_function 5 (%s)\n", buf.peekString());
         }
 
     public:
@@ -558,6 +735,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(Type t)
         {
+            printf("visit(Type)\n");
             if (t.isImmutable() || t.isShared())
             {
                 t.error(Loc(), "Internal Compiler Error: shared or immutable types can not be mapped to C++ (%s)", t.toChars());
@@ -571,6 +749,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeBasic t)
         {
+            printf("visit(TypeBasic)\n");
             /* ABI spec says:
              * v        void
              * w        wchar_t
@@ -707,6 +886,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeVector t)
         {
+            printf("visit(TypeVector)\n");
             is_top_level = false;
             if (substitute(t))
                 return;
@@ -726,6 +906,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeSArray t)
         {
+            printf("visit(TypeSArray)\n");
             is_top_level = false;
             if (!substitute(t))
                 store(t);
@@ -741,19 +922,24 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeDArray t)
         {
+            printf("visit(TypeDArray)\n");
             visit(cast(Type)t);
         }
 
         override void visit(TypeAArray t)
         {
+            printf("visit(TypeAArray)\n");
             visit(cast(Type)t);
         }
 
         override void visit(TypePointer t)
         {
+            printf("visit(TypePointer) , buf = %s\n", buf.peekString());
             is_top_level = false;
-            if (substitute(t))
+            if (substitute(t)) {
+                printf("exit1 visit(TypePointer) , buf = %s\n", buf.peekString());
                 return;
+            }
             if (t.isImmutable() || t.isShared())
             {
                 visit(cast(Type)t);
@@ -763,20 +949,27 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             buf.writeByte('P');
             t.next.accept(this);
             store(t);
+            printf("exit2 visit(TypePointer) , buf = %s\n", buf.peekString());
         }
 
         override void visit(TypeReference t)
         {
+            printf("visit(TypeReference)\n");
             is_top_level = false;
-            if (substitute(t))
+            if (substitute(t)) {
+                printf("exit1 visit(TypeReference) , buf = %s\n", buf.peekString());
                 return;
+            }
+            // Found where it begins to crash
             buf.writeByte('R');
             t.next.accept(this);
             store(t);
+            printf("exit2 visit(TypeReference) , buf = %s\n", buf.peekString());
         }
 
         override void visit(TypeFunction t)
         {
+            printf("visit(TypeFunction)\n");
             is_top_level = false;
             /*
              *  <function-type> ::= F [Y] <bare-function-type> E
@@ -815,65 +1008,91 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeDelegate t)
         {
+            printf("visit(TypeDelegate)\n");
             visit(cast(Type)t);
         }
 
         override void visit(TypeStruct t)
         {
+            printf("visit(TypeStruct), buf = %s\n", buf.peekString());
             const id = t.sym.ident;
-            //printf("struct id = '%s'\n", id.toChars());
+            printf("struct id = '%s'\n", id.toChars());
             char c;
             if (id == Id.__c_long)
+            {
+                printf("check visit(TypeStruct) 1\n");
                 c = 'l';
-            else if (id == Id.__c_ulong)
+            }
+            else if (id == Id.__c_ulong) {
+                printf("check visit(TypeStruct) 2\n");
                 c = 'm';
-            else
+            }
+            else {
+                printf("check visit(TypeStruct) 3\n");
                 c = 0;
+            }
             if (c)
             {
+                printf("check visit(TypeStruct) 4\n");
                 if (t.isImmutable() || t.isShared())
                 {
+                    printf("jump from visit(TypeStruct), buf = %s\n", buf.peekString());
                     visit(cast(Type)t);
                 }
                 if (t.isConst())
                 {
                     if (substitute(t))
                     {
+                        printf("exit1 visit(TypeStruct), buf = %s\n", buf.peekString());
                         return;
                     }
                     else
                     {
+                        printf("storing in visit(TypeStruct), buf = %s, t.deco = %s\n", buf.peekString(), t.deco);
                         store(t);
                     }
                 }
                 if (t.isConst())
                     buf.writeByte('K');
                 buf.writeByte(c);
+                printf("exit2 visit(TypeStruct), buf = %s\n", buf.peekString());
                 return;
             }
             is_top_level = false;
-            if (substitute(t))
+            printf("in visit(TypeStruct), buf = %s, line = %d\n", buf.peekString(), __LINE__);
+            if (substitute(t)) {
+                printf("exit3 visit(TypeStruct), buf = %s\n", buf.peekString());
                 return;
+            }
             if (t.isImmutable() || t.isShared())
             {
+                printf("check visit(TypeStruct) 5\n");
                 visit(cast(Type)t);
             }
-            if (t.isConst())
+            if (t.isConst()) {
+                printf("check visit(TypeStruct) 6\n");
                 buf.writeByte('K');
+            }
             if (!substitute(t.sym))
             {
+                printf("check visit(TypeStruct) 7\n");
                 cpp_mangle_name(t.sym, t.isConst());
             }
             if (t.isImmutable() || t.isShared())
             {
+                printf("check visit(TypeStruct) 8\n");
                 visit(cast(Type)t);
             }
-            if (t.isConst())
+            if (t.isConst()) {
+                printf("check visit(TypeStruct) 9\n");
                 store(t);
+            }
+            printf("exit4 visit(TypeStruct), buf = %s\n", buf.peekString());
         }
 
         override void visit(TypeEnum t)
         {
+            printf("visit(TypeEnum)\n");
             is_top_level = false;
             if (substitute(t))
                 return;
@@ -893,6 +1112,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         override void visit(TypeClass t)
         {
+            printf("visit(TypeClass)\n");
             if (substitute(t))
                 return;
             if (t.isImmutable() || t.isShared())

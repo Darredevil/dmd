@@ -38,6 +38,12 @@ extern (C++) abstract class Condition : RootObject
     // 2: do not include
     int inc;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     final extern (D) this(Loc loc)
     {
         this.loc = loc;

@@ -49,6 +49,8 @@ extern (C++) final class EnumDeclaration : ScopeDsymbol
     bool added;
     int inuse;
 
+    override bool myEquals(RootObject o) { assert( 0 ); }
+
     extern (D) this(Loc loc, Identifier id, Type memtype)
     {
         super(id);

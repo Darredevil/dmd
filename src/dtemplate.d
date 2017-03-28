@@ -463,6 +463,12 @@ extern (C++) final class Tuple : RootObject
 {
     Objects objects;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     // kludge for template.isType()
     override DYNCAST dyncast() const
     {
@@ -486,6 +492,31 @@ struct TemplatePrevious
  */
 extern (C++) final class TemplateDeclaration : ScopeDsymbol
 {
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        if (this is o)
+            return true;
+        Dsymbol s = cast(Dsymbol)o;
+        // Overload sets don't have an ident
+        if (s && ident && s.ident && this.ident.equals(s.ident))
+            return true;
+        return false;
+    }
+
+    override bool equals(RootObject o)
+    {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        if (this is o)
+            return true;
+        Dsymbol s = cast(Dsymbol)o;
+        // Overload sets don't have an ident
+        if (s && ident && s.ident && ident.equals(s.ident))
+            return true;
+        return false;
+    }
+
     TemplateParameters* parameters;     // array of TemplateParameter's
     TemplateParameters* origParameters; // originals for Ddoc
 
@@ -6044,6 +6075,7 @@ extern (C++) final class TemplateTupleParameter : TemplateParameter
  */
 extern (C++) class TemplateInstance : ScopeDsymbol
 {
+    override bool myEquals(RootObject o) { assert( 0 ); }
     Identifier name;
 
     // Array of Types/Expressions of template

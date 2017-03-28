@@ -484,6 +484,12 @@ extern (C++) abstract class Type : RootObject
     MOD mod; // modifiers MODxxxx
     char* deco;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     /* These are cached values that are lazily evaluated by constOf(), immutableOf(), etc.
      * They should not be referenced by anybody but mtype.c.
      * They can be NULL if not lazily evaluated yet.
@@ -620,15 +626,29 @@ extern (C++) abstract class Type : RootObject
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        //writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         Type t = cast(Type)o;
+        //Dsymbol d1 = cast(Dsymbol)o;
+        //Dsymbol d2 = cast(Dsymbol)this;
+        //writef("===================== FML this = %s  \n", toChars());
         //printf("Type::equals(%s, %s)\n", toChars(), t.toChars());
+        //writef("Type::equals(%s, %s)\n", toChars(), t.toChars());
         // deco strings are unique
         // and semantic() has been run
-        if (this == o || ((t && deco == t.deco) && deco !is null))
+        if (this is o || ((t && deco == t.deco) && deco !is null))
         {
+            //writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
             //printf("deco = '%s', t.deco = '%s'\n", deco, t.deco);
             return true;
         }
+        //writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        //writef("d1 = %s, d2 = %s\n", d1.toChars(), d2.toChars());
+        //import core.stdc.string : strcmp;
+        //if (strcmp(deco, "S4core6stdcpp8stl_pair3std15__T4pairTPvTPvZ4pair") == 0) {
+        //    writef("-------------MATCH2---------\n");
+        //    writef("-------------MATCH2--------- this.ident = %s, t.ident = %s\n", d2.ident ? d2.ident.toChars() : null, d1.ident ? d1.ident.toChars() : null);
+        //}
         //if (deco && t && t.deco) printf("deco = '%s', t.deco = '%s'\n", deco, t.deco);
         return false;
     }
@@ -1060,7 +1080,7 @@ extern (C++) abstract class Type : RootObject
      */
     final Type merge2()
     {
-        //printf("merge2(%s)\n", toChars());
+        printf("merge2(%s)\n", toChars());
         Type t = this;
         assert(t);
         if (!t.deco)
@@ -3081,6 +3101,12 @@ extern (C++) abstract class Type : RootObject
  */
 extern (C++) final class TypeError : Type
 {
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     extern (D) this()
     {
         super(Terror);
@@ -3128,6 +3154,12 @@ extern (C++) final class TypeError : Type
 extern (C++) abstract class TypeNext : Type
 {
     Type next;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     final extern (D) this(TY ty, Type next)
     {
@@ -4327,6 +4359,12 @@ extern (C++) final class TypeBasic : Type
 extern (C++) final class TypeVector : Type
 {
     Type basetype;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     extern (D) this(Loc loc, Type basetype)
     {
@@ -7325,6 +7363,12 @@ extern (C++) abstract class TypeQualified : Type
 {
     Loc loc;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     // array of Identifier and TypeInstance,
     // representing ident.ident!tiargs.ident. ... etc.
     Objects idents;
@@ -8264,6 +8308,13 @@ extern (C++) final class TypeStruct : Type
     AliasThisRec att = RECfwdref;
     CPPMANGLE cppmangle = CPPMANGLE.def;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        return equals(o);
+        assert(0);
+    }
+
     extern (D) this(StructDeclaration sym)
     {
         super(Tstruct);
@@ -8841,6 +8892,12 @@ extern (C++) final class TypeEnum : Type
 {
     EnumDeclaration sym;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     extern (D) this(EnumDeclaration sym)
     {
         super(Tenum);
@@ -9099,6 +9156,12 @@ extern (C++) final class TypeClass : Type
     ClassDeclaration sym;
     AliasThisRec att = RECfwdref;
     CPPMANGLE cppmangle = CPPMANGLE.def;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     extern (D) this(ClassDeclaration sym)
     {
@@ -9722,6 +9785,12 @@ extern (C++) final class TypeTuple : Type
 {
     Parameters* arguments;  // types making up the tuple
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     extern (D) this(Parameters* arguments)
     {
         super(Ttuple);
@@ -9822,6 +9891,8 @@ extern (C++) final class TypeTuple : Type
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         Type t = cast(Type)o;
         //printf("TypeTuple::equals(%s, %s)\n", toChars(), t.toChars());
         if (this == t)
@@ -10044,6 +10115,12 @@ extern (C++) final class TypeSlice : TypeNext
  */
 extern (C++) final class TypeNull : Type
 {
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     extern (D) this()
     {
         super(Tnull);
@@ -10109,6 +10186,12 @@ extern (C++) final class Parameter : RootObject
     Type type;
     Identifier ident;
     Expression defaultArg;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     extern (D) this(StorageClass storageClass, Type type, Identifier ident, Expression defaultArg)
     {

@@ -32,6 +32,12 @@ private:
 
 public:
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     extern (D) this(const(char)* string, size_t length, int value)
     {
         //printf("Identifier('%s', %d)\n", string, value);
@@ -53,6 +59,8 @@ public:
 
     override bool equals(RootObject o) const
     {
+        import std.stdio;
+        //writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         return this == o || strncmp(string, o.toChars(), len + 1) == 0;
     }
 

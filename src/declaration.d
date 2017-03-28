@@ -927,6 +927,8 @@ extern (C++) final class OverDeclaration : Declaration
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
 

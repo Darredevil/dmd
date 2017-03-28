@@ -208,6 +208,12 @@ extern (C++) class Dsymbol : RootObject
     // (only use this with ddoc)
     UnitTestDeclaration ddocUnittest;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     final extern (D) this()
     {
         //printf("Dsymbol::Dsymbol(%p)\n", this);
@@ -255,7 +261,9 @@ extern (C++) class Dsymbol : RootObject
 
     override bool equals(RootObject o)
     {
-        if (this == o)
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        if (this is o)
             return true;
         Dsymbol s = cast(Dsymbol)o;
         // Overload sets don't have an ident
@@ -1269,6 +1277,11 @@ private:
     BitArray accessiblePackages, privateAccessiblePackages;// whitelists of accessible (imported) packages
 
 public:
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
     final extern (D) this()
     {
     }
@@ -1276,6 +1289,19 @@ public:
     final extern (D) this(Identifier id)
     {
         super(id);
+    }
+
+    override bool equals(RootObject o)
+    {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        if (this is o)
+            return true;
+        Dsymbol s = cast(Dsymbol)o;
+        // Overload sets don't have an ident
+        if (s && ident && s.ident && ident.equals(s.ident))
+            return true;
+        return false;
     }
 
     override Dsymbol syntaxCopy(Dsymbol s)
@@ -1705,6 +1731,8 @@ extern (C++) final class WithScopeSymbol : ScopeDsymbol
 {
     WithStatement withstate;
 
+    override bool myEquals(RootObject o) { assert( 0 ); }
+
     extern (D) this(WithStatement withstate)
     {
         this.withstate = withstate;
@@ -1783,6 +1811,8 @@ extern (C++) final class ArrayScopeSymbol : ScopeDsymbol
         td = s;
         this.sc = sc;
     }
+
+    override bool myEquals(RootObject o) { assert( 0 ); }
 
     override Dsymbol search(Loc loc, Identifier ident, int flags = IgnoreNone)
     {
@@ -1984,6 +2014,8 @@ extern (C++) final class OverloadSet : Dsymbol
         }
     }
 
+    override bool myEquals(RootObject o) { assert( 0 ); }
+
     void push(Dsymbol s)
     {
         a.push(s);
@@ -2011,6 +2043,12 @@ extern (C++) final class OverloadSet : Dsymbol
 extern (C++) final class DsymbolTable : RootObject
 {
     AA* tab;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     // Look up Identifier. Return Dsymbol if found, NULL if not.
     Dsymbol lookup(const Identifier ident)

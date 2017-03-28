@@ -38,6 +38,8 @@ extern (C++) class RootObject
     {
     }
 
+    bool myEquals(RootObject o) { assert( 0 ); }
+
     bool equals(RootObject o)
     {
         return o is this;

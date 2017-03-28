@@ -2500,6 +2500,12 @@ extern (C++) abstract class Expression : RootObject
     ubyte size;     // # of bytes in Expression so we can copy() it
     ubyte parens;   // if this is a parenthesized expression
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     final extern (D) this(Loc loc, TOK op, int size)
     {
         //printf("Expression::Expression(op = %d) this = %p\n", op, this);
@@ -3480,6 +3486,8 @@ extern (C++) final class IntegerExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if ((cast(Expression)o).op == TOKint64)
@@ -3663,6 +3671,8 @@ extern (C++) final class RealExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if ((cast(Expression)o).op == TOKfloat64)
@@ -3737,6 +3747,8 @@ extern (C++) final class ComplexExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if ((cast(Expression)o).op == TOKcomplex80)
@@ -4424,6 +4436,8 @@ extern (C++) final class NullExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (o && o.dyncast() == DYNCAST.expression)
         {
             Expression e = cast(Expression)o;
@@ -4518,6 +4532,8 @@ extern (C++) final class StringExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         //printf("StringExp::equals('%s') %s\n", o.toChars(), toChars());
         if (o && o.dyncast() == DYNCAST.expression)
         {
@@ -4983,6 +4999,8 @@ extern (C++) final class TupleExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if ((cast(Expression)o).op == TOKtuple)
@@ -5092,6 +5110,8 @@ extern (C++) final class ArrayLiteralExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if (o && o.dyncast() == DYNCAST.expression && (cast(Expression)o).op == TOKarrayliteral)
@@ -5298,6 +5318,8 @@ extern (C++) final class AssocArrayLiteralExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if (o && o.dyncast() == DYNCAST.expression && (cast(Expression)o).op == TOKassocarrayliteral)
@@ -5438,6 +5460,8 @@ extern (C++) final class StructLiteralExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if (o && o.dyncast() == DYNCAST.expression && (cast(Expression)o).op == TOKstructliteral)
@@ -6548,6 +6572,8 @@ extern (C++) final class VarExp : SymbolExp
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if ((cast(Expression)o).op == TOKvar)
@@ -6726,6 +6752,8 @@ extern (C++) final class FuncExp : Expression
 
     override bool equals(RootObject o)
     {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
         if (this == o)
             return true;
         if (o.dyncast() != DYNCAST.expression)

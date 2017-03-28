@@ -108,6 +108,12 @@ extern (C++) abstract class Statement : RootObject
 {
     Loc loc;
 
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
+
     override final DYNCAST dyncast() const
     {
         return DYNCAST.statement;
@@ -1823,6 +1829,12 @@ extern (C++) final class Catch : RootObject
     Identifier ident;
     VarDeclaration var;
     Statement handler;
+
+    override bool myEquals(RootObject o) {
+        import std.stdio;
+        writef("===================== FML %s line = %d\n", __FILE__, __LINE__);
+        assert(0);
+    }
 
     bool errors;                // set if semantic processing errors
 
