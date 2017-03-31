@@ -405,10 +405,13 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             bool dont_write_prefix = false;
             if (p && p.isTemplateInstance())
             {
+                printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
                 se = p;
                 if (exist(p.isTemplateInstance().tempdecl))
                     dont_write_prefix = true;
                 p = p.toParent();
+                // TODO CHECK: fixes test14195b but not sure if 100% correct
+                store(s);
             }
             if (p && !p.isModule())
             {
@@ -1073,6 +1076,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 printf("check visit(TypeStruct) 6\n");
                 buf.writeByte('K');
             }
+            printf("check visit(TypeStruct) 7.0\n");
             if (!substitute(t.sym))
             {
                 printf("check visit(TypeStruct) 7\n");
