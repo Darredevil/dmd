@@ -125,7 +125,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
-                    if (p == components[i])
+                    import core.stdc.string : strcmp;
+                    if (strcmp(p.toChars(), components[i].toChars()) == 0)
                     {
                         return true;
                     }
@@ -156,9 +157,11 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 printf("% *c source_name(%s) (ti.temdecl = %s) (line %d)\n", indent, ' ', s.toChars(), ti.tempdecl.toChars(), __LINE__);
                 if (!skipname && !substitute(ti.tempdecl))
                 {
-                    printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                    printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     // TODO fix must not add that prob
                     //store(ti.tempdecl);
+                    if (!exist(ti.tempdecl.toAlias().ident))
+                        store(ti.tempdecl.toAlias().ident);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
                     printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
@@ -411,7 +414,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     dont_write_prefix = true;
                 p = p.toParent();
                 // TODO CHECK: fixes test14195b but not sure if 100% correct
-                store(s);
+                //store(s);
             }
             if (p && !p.isModule())
             {
