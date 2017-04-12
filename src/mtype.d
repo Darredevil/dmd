@@ -1080,7 +1080,7 @@ extern (C++) abstract class Type : RootObject
      */
     final Type merge2()
     {
-        printf("merge2(%s)\n", toChars());
+        //printf("merge2(%s)\n", toChars());
         Type t = this;
         assert(t);
         if (!t.deco)

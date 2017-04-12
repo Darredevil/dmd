@@ -160,9 +160,9 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     // TODO fix must not add that prob
                     // TEST initial again
-                    store(ti.tempdecl);
-                    //if (!exist(ti.tempdecl.toAlias().ident))
-                    //    store(ti.tempdecl.toAlias().ident);
+                    //store(ti.tempdecl);
+                    if (!exist(ti.tempdecl.toAlias().ident))
+                        store(ti.tempdecl.toAlias().ident);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
                     printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
@@ -240,12 +240,12 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         assert(t);
                         t.accept(this);
                         // TEST initial again
-                        //if (s && s.isTemplateInstance()) {
-                        //    if (!(s.ident == Id.std && is_initial_qualifier(s)) && !componentsContain(s)) {
-                        //        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
-                        //        store(s);
-                        //    }
-                        //}
+                        if (s && s.isTemplateInstance()) {
+                            if (!(s.ident == Id.std && is_initial_qualifier(s)) && !componentsContain(s)) {
+                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                                store(s);
+                            }
+                        }
                     }
                     else if (tp.isTemplateAliasParameter())
                     {
@@ -349,7 +349,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     printf("% *c in prefix_name 1.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                     // TODO: fixed substitution
                     // TEST initial again
-                    //store(s);
+                    store(s);
                     s = p;
                     if (exist(p.isTemplateInstance().tempdecl))
                     {
@@ -378,7 +378,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 }
                 printf("% *c in prefix_name 2.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                 // TEST initial again
-                if (!(s.ident == Id.std && is_initial_qualifier(s))) {
+                if (!(s.ident == Id.std && is_initial_qualifier(s)) && !s.isTemplateInstance()) {
                 //if (s.isClassDeclaration()) {
                     //printf("% *c in prefix_name 2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
                     printf("% *c in prefix_name 2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
