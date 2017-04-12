@@ -159,9 +159,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 {
                     printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     // TODO fix must not add that prob
-                    //store(ti.tempdecl);
-                    if (!exist(ti.tempdecl.toAlias().ident))
-                        store(ti.tempdecl.toAlias().ident);
+                    // TEST initial again
+                    store(ti.tempdecl);
+                    //if (!exist(ti.tempdecl.toAlias().ident))
+                    //    store(ti.tempdecl.toAlias().ident);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
                     printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
@@ -238,12 +239,13 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         Type t = isType(o);
                         assert(t);
                         t.accept(this);
-                        if (s && s.isTemplateInstance()) {
-                            if (!(s.ident == Id.std && is_initial_qualifier(s)) && !componentsContain(s)) {
-                                printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
-                                store(s);
-                            }
-                        }
+                        // TEST initial again
+                        //if (s && s.isTemplateInstance()) {
+                        //    if (!(s.ident == Id.std && is_initial_qualifier(s)) && !componentsContain(s)) {
+                        //        printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+                        //        store(s);
+                        //    }
+                        //}
                     }
                     else if (tp.isTemplateAliasParameter())
                     {
@@ -346,7 +348,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     //printf("% *c in prefix_name 1.1 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
                     printf("% *c in prefix_name 1.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                     // TODO: fixed substitution
-                    store(s);
+                    // TEST initial again
+                    //store(s);
                     s = p;
                     if (exist(p.isTemplateInstance().tempdecl))
                     {
@@ -374,11 +377,13 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     }
                 }
                 printf("% *c in prefix_name 2.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
-                //if (!(s.ident == Id.std && is_initial_qualifier(s))) {
-                //    //printf("% *c in prefix_name 2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
-                //    printf("% *c in prefix_name 2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
-                //    store(s);
-                //}
+                // TEST initial again
+                if (!(s.ident == Id.std && is_initial_qualifier(s))) {
+                //if (s.isClassDeclaration()) {
+                    //printf("% *c in prefix_name 2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
+                    printf("% *c in prefix_name 2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
+                    store(s);
+                }
                 source_name(s);
             }
         }
@@ -388,14 +393,18 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
         bool is_initial_qualifier(Dsymbol s)
         {
             Dsymbol p = s.toParent();
+            printf("% *c in is_initial_qualifier (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
             if (p && p.isTemplateInstance())
             {
+                printf("% *c in is_initial_qualifier (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                 if (exist(p.isTemplateInstance().tempdecl))
                 {
+                    printf("% *c in is_initial_qualifier (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                     return true;
                 }
                 p = p.toParent();
             }
+            printf("% *c in is_initial_qualifier (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
             return !p || p.isModule();
         }
 
@@ -418,6 +427,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             }
             if (p && !p.isModule())
             {
+                printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
                 /* The N..E is not required if:
                  * 1. the parent is 'std'
                  * 2. 'std' is the initial qualifier
@@ -426,6 +436,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                  */
                 if (p.ident == Id.std && is_initial_qualifier(p) && !qualified)
                 {
+                    printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
                     if (s.ident == Id.allocator)
                     {
                         buf.writestring("Sa"); // "Sa" is short for ::std::allocator
@@ -488,6 +499,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 }
                 else
                 {
+                    printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
                     buf.writeByte('N');
                     if (!dont_write_prefix)
                         prefix_name(p);
@@ -495,8 +507,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     buf.writeByte('E');
                 }
             }
-            else
+            else {
+                printf("% *c cpp_mangle_name(%s, %d) (line %d)\n", indent, ' ', s.toChars(), qualified, __LINE__);
                 source_name(se);
+            }
             store(s);
         }
 
