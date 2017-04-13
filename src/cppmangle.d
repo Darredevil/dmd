@@ -88,6 +88,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
         {
             printf("substitute <%s>\n", p ? p.toChars() : null);
             Type t = cast(Type)p;
+            Dsymbol parent = (cast(Dsymbol)p).toParent();
             printf("t.deco = '%s'\n", t.deco);
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
@@ -95,38 +96,71 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     printf("    component[%d] = <%s>\n", i, components[i] ? components[i].toChars() : null);
                     //p.myEquals(components[i]);
                     //import core.stdc.string : strcmp;
-                    if (strcmp(p.toChars(), "pair!(void*, void*)") == 0 && strcmp(components[i].toChars(), "pair!(void*, void*)") == 0) {//pair!(void*, void*)
-                        printf("---------------MATCH ----------------\n");
-                        // Found problem, the components[i] has no .deco field assigned
-                        // need to find where it is created and sort this out
-                        p.myEquals(components[i]);
-                    }
+                    //if (strcmp(p.toChars(), "pair!(void*, void*)") == 0 && strcmp(components[i].toChars(), "pair!(void*, void*)") == 0) {//pair!(void*, void*)
+                    //    printf("---------------MATCH ----------------\n");
+                    //    // Found problem, the components[i] has no .deco field assigned
+                    //    // need to find where it is created and sort this out
+                    //    p.myEquals(components[i]);
+                    //}
                     //if (p == components[i])
                     //if (p.myEquals(components[i]))
                     import core.stdc.string : strcmp;
-                    if (strcmp(p.toChars(), components[i].toChars()) == 0) //pair!(void*, void*)
-                    {
-                        printf("\tmatch\n");
-                        /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
-                         */
-                        buf.writeByte('S');
-                        if (i)
-                            writeBase36(i - 1);
-                        buf.writeByte('_');
-                        return true;
+                    if (parent && (cast(Dsymbol)components[i]).toParent() && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), (cast(Dsymbol)components[i]).toParent().toChars()) == 0
+                        || (!parent || !(cast(Dsymbol)components[i]).toParent()) && strcmp(p.toChars(), components[i].toChars()) == 0) {
+                            printf("\tmatch\n");
+                            /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
+                             */
+                            buf.writeByte('S');
+                            if (i)
+                                writeBase36(i - 1);
+                            buf.writeByte('_');
+                            return true;
+
                     }
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0) //pair!(void*, void*)
+                    //{
+                    //    printf("\tmatch\n");
+                    //    /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
+                    //     */
+                    //    buf.writeByte('S');
+                    //    if (i)
+                    //        writeBase36(i - 1);
+                    //    buf.writeByte('_');
+                    //    return true;
+                    //}
                 }
             return false;
         }
 
         bool exist(RootObject p)
         {
-            //printf("exist %s\n", p ? p.toChars() : null);
+            import std.stdio;
+            printf("exist %s\n", p ? p.toChars() : null);
+            if (p)
+                writef("not null\n");
+            writef("object type = <%s>\n", typeof(p).stringof);
+            writef("dynamic object type = <%s>\n", typeid(typeof(p)));
+            writef("dynamic1.2 object type = <%s>\n", p.classinfo.name);
+            writef("dynamic2 object type = <%s>\n", typeid(p));
+            pragma(msg, typeof(p));
+            Dsymbol s = cast(Dsymbol)p;
+            printf("after first parent cast\n");
+            writef("object type = <%s>\n", typeof(s).stringof);
+            writef("dynamic object type = <%s>\n", typeid(typeof(s)));
+            Dsymbol parent = s.toParent();
+            //Dsymbol parent = null;
+            printf("after second parent cast\n");
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
+                    printf("before third parent cast\n");
+                    Dsymbol p1 = (cast(Dsymbol)components[i]).toParent();
+                    printf("exist parent=<%s> p1=<%s>\n", p ? p.toChars() : null, parent ? parent.toChars() : null, p1 ? p1.toChars() : null);
                     import core.stdc.string : strcmp;
-                    if (strcmp(p.toChars(), components[i].toChars()) == 0)
+                    if (parent && p1 && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), p1.toChars()) == 0
+                        || (!parent || !p1) && strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (p == components[i])
                     {
                         return true;
                     }
