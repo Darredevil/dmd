@@ -876,6 +876,27 @@ extern (C++) abstract class Type : RootObject
         return buf.extractString();
     }
 
+    override const(char)* toCharsFull()
+    {
+        //import core.stdc.string : strcat;
+        import std.conv : to;
+        import std.string : toStringz;
+        import std.format;
+        import std.stdio;
+        if (nextOf())
+        {
+            //string p = parent.toCharsFull();
+            //string c = toChars();
+            //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s>\n", parent.toCharsFull(), toChars());
+            string r = format("%s.%s", to!string(nextOf().toCharsFull()), to!string(toPrettyChars(true)));
+            //writef(">>>>>>>>>>>> in toCharsFull >>>>>> r = <%s>\n", r);
+            return toStringz(r);
+            //return parent.toCharsFull() ~ "::" ~ toChars();
+        }
+        //printf(">>>>>>>>>>>> in toCharsFull >>>>>> this = <%s>\n", toChars());
+        return toPrettyChars(true);
+    }
+
     final char* toPrettyChars(bool QualifyTypes = false)
     {
         OutBuffer buf;
@@ -5931,6 +5952,27 @@ extern (C++) final class TypeReference : TypeNext
         // BUG: what about references to static arrays?
     }
 
+    //override const(char)* toCharsFull()
+    //{
+    //    //import core.stdc.string : strcat;
+    //    import std.conv : to;
+    //    import std.string : toStringz;
+    //    import std.format;
+    //    import std.stdio;
+    //    if (next)
+    //    {
+    //        //string p = parent.toCharsFull();
+    //        //string c = toChars();
+    //        //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s>\n", parent.toCharsFull(), toChars());
+    //        string r = format("%s.%s", to!string(next.toCharsFull()), to!string(toChars()));
+    //        //writef(">>>>>>>>>>>> in toCharsFull >>>>>> r = <%s>\n", r);
+    //        return toStringz(r);
+    //        //return parent.toCharsFull() ~ "::" ~ toChars();
+    //    }
+    //    //printf(">>>>>>>>>>>> in toCharsFull >>>>>> this = <%s>\n", toChars());
+    //    return toChars();
+    //}
+
     override const(char)* kind() const
     {
         return "reference";
@@ -10365,6 +10407,11 @@ extern (C++) final class Parameter : RootObject
     override const(char)* toChars() const
     {
         return ident ? ident.toChars() : "__anonymous_param";
+    }
+
+    override const(char)* toCharsFull()
+    {
+        return toChars();
     }
 
     /*********************************

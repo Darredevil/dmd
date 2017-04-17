@@ -94,6 +94,11 @@ extern (C++) class Initializer : RootObject
         return buf.extractString();
     }
 
+    override const(char)* toCharsFull()
+    {
+        return toChars();
+    }
+
     ErrorInitializer isErrorInitializer()
     {
         return null;

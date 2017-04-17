@@ -86,14 +86,20 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         bool substitute(RootObject p)
         {
-            printf("substitute <%s>\n", p ? p.toChars() : null);
+            printf("substitute <%s> toCharsFull() = <%s>\n", p ? p.toChars() : null, p ? p.toCharsFull() : null);
             Type t = cast(Type)p;
-            Dsymbol parent = (cast(Dsymbol)p).toParent();
+            //Dsymbol parent = (cast(Dsymbol)p).toParent();
+            //Dsymbol parent = null;
             printf("t.deco = '%s'\n", t.deco);
+            //import std.stdio;
+            //writef("object type = <%s>\n", typeof(p).stringof);
+            //writef("dynamic object type = <%s>\n", typeid(typeof(p)));
+            //writef("dynamic1.2 object type = <%s>\n", p.classinfo.name);
+            //writef("dynamic2 object type = <%s>\n", typeid(p));
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
-                    printf("    component[%d] = <%s>\n", i, components[i] ? components[i].toChars() : null);
+                    printf("    component[%d] = <%s> toCharsFull = <%s> \n", i, components[i] ? components[i].toChars() : null, components[i] ? components[i].toCharsFull() : null);
                     //p.myEquals(components[i]);
                     //import core.stdc.string : strcmp;
                     //if (strcmp(p.toChars(), "pair!(void*, void*)") == 0 && strcmp(components[i].toChars(), "pair!(void*, void*)") == 0) {//pair!(void*, void*)
@@ -102,11 +108,23 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     //    // need to find where it is created and sort this out
                     //    p.myEquals(components[i]);
                     //}
-                    //if (p == components[i])
                     //if (p.myEquals(components[i]))
+                    //if (p == components[i])
                     import core.stdc.string : strcmp;
-                    if (parent && (cast(Dsymbol)components[i]).toParent() && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), (cast(Dsymbol)components[i]).toParent().toChars()) == 0
-                        || (!parent || !(cast(Dsymbol)components[i]).toParent()) && strcmp(p.toChars(), components[i].toChars()) == 0) {
+                    if (p == components[i] || (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(p.toCharsFull(), components[i].toCharsFull()) == 0))
+
+                    //Dsymbol p1 = cast(Dsymbol)p;
+                    //Dsymbol c1 = cast(Dsymbol)components[i];
+                    //printf("c1 %s\n", c1 ? c1.toChars() : null);
+                    //printf("p1 %s\n", p1 ? p1.toChars() : null);
+                    //printf("c1 %s\n", c1 ? c1.ident.toChars() : null);
+                    //printf("p1 %s\n", p1 ? p1.ident.toChars() : null);
+                    //if (strcmp(p1.ident.toChars(), c1.ident.toChars()) == 0)
+                    //if (parent && (cast(Dsymbol)components[i]).toParent() && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), (cast(Dsymbol)components[i]).toParent().toChars()) == 0
+                        //|| (!parent || !(cast(Dsymbol)components[i]).toParent()) && strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(t.deco, (cast(Type)components[i]).deco) == 0)
+                    {
                             printf("\tmatch\n");
                             /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
                              */
@@ -134,32 +152,45 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         bool exist(RootObject p)
         {
+            printf("exist <%s> toCharsFull() = <%s>\n", p ? p.toChars() : null, p ? p.toCharsFull() : null);
             import std.stdio;
-            printf("exist %s\n", p ? p.toChars() : null);
-            if (p)
-                writef("not null\n");
-            writef("object type = <%s>\n", typeof(p).stringof);
-            writef("dynamic object type = <%s>\n", typeid(typeof(p)));
-            writef("dynamic1.2 object type = <%s>\n", p.classinfo.name);
-            writef("dynamic2 object type = <%s>\n", typeid(p));
-            pragma(msg, typeof(p));
-            Dsymbol s = cast(Dsymbol)p;
-            printf("after first parent cast\n");
-            writef("object type = <%s>\n", typeof(s).stringof);
-            writef("dynamic object type = <%s>\n", typeid(typeof(s)));
-            Dsymbol parent = s.toParent();
+            Type t = cast(Type)p;
+            printf("t.deco = '%s'\n", t.deco);
+            //printf("exist %s\n", p ? p.toChars() : null);
+            //if (p)
+            //    writef("not null\n");
+            //writef("object type = <%s>\n", typeof(p).stringof);
+            //writef("dynamic object type = <%s>\n", typeid(typeof(p)));
+            //writef("dynamic1.2 object type = <%s>\n", p.classinfo.name);
+            //writef("dynamic2 object type = <%s>\n", typeid(p));
+            //pragma(msg, typeof(p));
+            //Dsymbol s = cast(Dsymbol)p;
+            //printf("after first parent cast\n");
+            //writef("object type = <%s>\n", typeof(s).stringof);
+            //writef("dynamic object type = <%s>\n", s ? typeid(s) : null);
+            //Dsymbol parent = s.toParent();
             //Dsymbol parent = null;
-            printf("after second parent cast\n");
+            //printf("after second parent cast\n");
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
-                    printf("before third parent cast\n");
-                    Dsymbol p1 = (cast(Dsymbol)components[i]).toParent();
-                    printf("exist parent=<%s> p1=<%s>\n", p ? p.toChars() : null, parent ? parent.toChars() : null, p1 ? p1.toChars() : null);
+                    //printf("before third parent cast\n");
+                    //Dsymbol p1 = (cast(Dsymbol)components[i]).toParent();
+                    //printf("exist parent=<%s> p1=<%s>\n", p ? p.toChars() : null, parent ? parent.toChars() : null, p1 ? p1.toChars() : null);
                     import core.stdc.string : strcmp;
-                    if (parent && p1 && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), p1.toChars()) == 0
-                        || (!parent || !p1) && strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (parent && p1 && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), p1.toChars()) == 0
+                        //|| (!parent || !p1) && strcmp(p.toChars(), components[i].toChars()) == 0)
                     //if (strcmp(p.toChars(), components[i].toChars()) == 0)
+                    //if (strcmp(p.toCharsFull(), components[i].toCharsFull()) == 0)
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(t.deco, (cast(Type)components[i]).deco) == 0)
+                    //Dsymbol p1 = cast(Dsymbol)p;
+                    //Dsymbol c1 = cast(Dsymbol)components[i];
+                    //printf("c1 %s\n", c1 ? c1.toChars() : null);
+                    //printf("p1 %s\n", p1 ? p1.toChars() : null);
+                    //if (strcmp(p1.ident.toChars(), c1.ident.toChars()) == 0)
+                    //if (strcmp(p.ident.toChars(), components[i].ident.toChars()) == 0)
+                    if (p == components[i] || (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(p.toCharsFull(), components[i].toCharsFull()) == 0))
+                    //if (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(p.toCharsFull(), components[i].toCharsFull()) == 0)
                     //if (p == components[i])
                     {
                         return true;
@@ -176,27 +207,41 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 components.push(p);
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
-                    printf("    component[%d] = <%s>\n", i, components[i] ? components[i].toChars() : null);
+                    printf("    component[%d] = <%s>, t.deco = <%s>, toCharsFull = <%s>\n", i, components[i] ? components[i].toChars() : null, (cast(Type)components[i]).deco, components[i].toCharsFull());
             printf("----------FINISHED STORING------------\n");
         }
 
-        void source_name(Dsymbol s, bool skipname = false)
+        void source_name(Dsymbol s, bool skipname = false, bool skipname2 = false)
         {
-            printf("% *c source_name(%s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+            printf("% *c source_name(%s) full = <%s> (line %d)\n", indent, ' ', s.toChars(), s.toCharsFull(), __LINE__);
             indent += 4;
             TemplateInstance ti = s.isTemplateInstance();
             printf("% *c source_name(%s) (ti = %s) (line %d)\n", indent, ' ', s.toChars(), ti ? ti.toChars() : null, __LINE__);
             if (ti)
             {
                 printf("% *c source_name(%s) (ti.temdecl = %s) (line %d)\n", indent, ' ', s.toChars(), ti.tempdecl.toChars(), __LINE__);
-                if (!skipname && !substitute(ti.tempdecl))
+                printf("% *c source_name(%s) (ti.temdecl.toAlias.ident = %s) (line %d)\n", indent, ' ', s.toChars(), ti.tempdecl.toAlias().ident.toChars(), __LINE__);
+                printf("% *c source_name(%s) (ti.ident = %s) (line %d)\n", indent, ' ', s.toChars(), ti.ident ? ti.ident.toChars() : null, __LINE__);
+                //if (!skipname && !substitute(ti.tempdecl))
+                //if (!skipname && !substitute(ti.ident))
+                //if (!skipname && !skipname2 && !substitute(ti.tempdecl.toAlias().ident))
+                if (!skipname && !skipname2 && !substitute(ti.tempdecl))
+                //if (!skipname && !substitute(ti.ident))
                 {
                     printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     // TODO fix must not add that prob
                     // TEST initial again
-                    //store(ti.tempdecl);
-                    if (!exist(ti.tempdecl.toAlias().ident))
-                        store(ti.tempdecl.toAlias().ident);
+                    store(ti.tempdecl);
+                    //if (!exist(ti.tempdecl.toAlias().ident))
+                        //store(ti.tempdecl.toAlias().ident);
+                    //if (!exist(ti.ident))
+                        //store(ti.ident);
+                    const(char)* name = ti.tempdecl.toAlias().ident.toChars();
+                    buf.printf("%d%s", strlen(name), name);
+                    printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
+                } else if (!skipname && skipname2 && !substitute(ti.tempdecl.toAlias().ident))
+                {
+                    printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
                     printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
@@ -372,7 +417,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
         void prefix_name(Dsymbol s)
         {
             printf("prefix_name(%s)\n", s.toChars());
-            printf("% *c in prefix_name 1 (s = %s) (line %d)\n", indent, ' ', s.toChars(), __LINE__);
+            printf("% *c in prefix_name 1 (s.full = %s) (line %d)\n", indent, ' ', s.toCharsFull(), __LINE__);
             if (!substitute(s))
             {
                 Dsymbol p = s.toParent();
@@ -384,8 +429,12 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     // TODO: fixed substitution
                     // TEST initial again
                     store(s);
+                    //store(p);
                     s = p;
-                    if (exist(p.isTemplateInstance().tempdecl))
+                    // TODO: check if ok
+                    //if (exist(p.isTemplateInstance().tempdecl))
+                    if (exist(p.isTemplateInstance()))
+                    //if (exist(p.isTemplateInstance().tempdecl.toAlias().ident))
                     {
                         printf("% *c in prefix_name 1.1.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                         p = null;
@@ -413,12 +462,20 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 printf("% *c in prefix_name 2.0 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
                 // TEST initial again
                 if (!(s.ident == Id.std && is_initial_qualifier(s)) && !s.isTemplateInstance()) {
+                //if (!(s.ident == Id.std && is_initial_qualifier(s))) {
                 //if (s.isClassDeclaration()) {
                     //printf("% *c in prefix_name 2 (s = %s) (s.ident = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(),__LINE__);
                     printf("% *c in prefix_name 2.1 (s = %s) (s.ident = %s) (p = %s) (line %d)\n", indent, ' ', s.toChars(), s.ident.toChars(), p.toChars(),__LINE__);
-                    store(s);
+                    //if (s.isTemplateInstance())
+                        //store((s.isTemplateInstance()).tempdecl.toAlias().ident);
+                    //else
+                        store(s);
                 }
-                source_name(s);
+                //if (s.isTemplateInstance)
+                    //source_name(s, true);
+                //else
+                    //source_name(s);
+                source_name(s, false, true);
             }
         }
 
@@ -580,7 +637,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void mangle_function(FuncDeclaration d)
         {
-            printf("% *c mangle_function(%s) (line %d)\n", indent, ' ', d.toChars(), __LINE__);
+            printf("% *c mangle_function(%s) full = <%s> (line %d)\n", indent, ' ', d.toChars(), d.toCharsFull(), __LINE__);
             indent += 4;
             /*
              * <mangled-name> ::= _Z <encoding>
@@ -732,7 +789,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                  * then don't mark it const
                  */
                 this.is_top_level = true;
-                printf("% *c source_name(%s) (t = %s) (line %d)\n", indent, ' ', buf.peekString(), t.toChars(), __LINE__);
+                printf("% *c source_name(%s) (t = %s) (line %d)\n", indent, ' ', buf.peekString(), t.toPrettyChars(true), __LINE__);
                 if ((t.ty == Tenum || t.ty == Tstruct || t.ty == Tpointer || t.isTypeBasic()) && t.isConst()) {
                     printf("% *c source_name(%s) (line %d)\n", indent, ' ', buf.peekString(), __LINE__);
                     t.mutableOf().accept(this);

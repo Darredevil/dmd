@@ -40,6 +40,12 @@ extern (C++) class RootObject
 
     bool myEquals(RootObject o) { assert( 0 ); }
 
+    const(char)* toCharsFull()
+    {
+        assert(0);
+        //return "rootobject";
+    }
+
     bool equals(RootObject o)
     {
         return o is this;

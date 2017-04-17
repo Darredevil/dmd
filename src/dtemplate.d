@@ -479,6 +479,11 @@ extern (C++) final class Tuple : RootObject
     {
         return objects.toChars();
     }
+
+    override const(char)* toCharsFull()
+    {
+        return toChars();
+    }
 }
 
 struct TemplatePrevious
@@ -6895,6 +6900,11 @@ extern (C++) class TemplateInstance : ScopeDsymbol
         toCBufferInstance(this, &buf, true);
         return buf.extractString();
     }
+
+    //override const(char)* toCharsFull()
+    //{
+    //    return toPrettyCharsHelper();
+    //}
 
     /**************************************
      * Given an error instantiating the TemplateInstance,

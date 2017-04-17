@@ -2605,6 +2605,11 @@ extern (C++) abstract class Expression : RootObject
         return buf.extractString();
     }
 
+    override const(char)* toCharsFull()
+    {
+        return toChars();
+    }
+
     /********************
      * Print AST data structure in a nice format.
      * Params:
