@@ -6901,6 +6901,48 @@ extern (C++) class TemplateInstance : ScopeDsymbol
         return buf.extractString();
     }
 
+    override const(char)* toCharsFull()
+    {
+        import std.conv : to;
+        import std.string : toStringz;
+        import std.format;
+        import std.stdio;
+        string s = to!string(super.toCharsFull());
+
+        //if (parent)
+        //{
+        //    string r = to!string(parent.toCharsFull()) ~ '.' ~ to!string(toChars());
+        //    return toStringz(r);
+        //}
+
+        s ~= '[';
+
+        writef("TemplateInstance toCharsFull s = <%s>\n", s);
+        //for (size_t j = 0; j < tiargs.dim; j++)
+        for (size_t j = 0; j < tdtypes.dim; j++)
+        {
+            //RootObject o = (*tiargs)[j];
+            RootObject o = tdtypes[j];
+            Type ta = isType(o);
+            Expression ea = isExpression(o);
+            Dsymbol sa = isDsymbol(o);
+            Tuple va = isTuple(o);
+            printf("\ttiargs[%d] = ta %s, ea %p, sa %s, va %p\n", j, ta ?  ta.toCharsFull() : null, ea, sa ? sa.toCharsFull() : null, va);
+            //if (sa)
+            //    s ~= to!string(sa.toCharsFull()) ~ ';';
+            //else if (ta)
+            //    s ~= to!string(ta.toCharsFull()) ~ ';';
+            if (o)
+                s ~= to!string(o.toCharsFull()) ~ ';';
+        }
+
+        s ~= ']';
+        writef("TemplateInstance toCharsFull.v2 s = <%s>\n", s);
+
+        //return toChars();
+        return toStringz(s);
+    }
+
     //override const(char)* toCharsFull()
     //{
     //    return toPrettyCharsHelper();

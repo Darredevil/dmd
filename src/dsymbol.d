@@ -214,25 +214,40 @@ extern (C++) class Dsymbol : RootObject
         assert(0);
     }
 
+    //override const(char)* toCharsFull()
+    //{
+    //    //import core.stdc.string : strcat;
+    //    import std.conv : to;
+    //    import std.string : toStringz;
+    //    import std.format;
+    //    import std.stdio;
+    //    if (parent)
+    //    {
+    //        //string p = parent.toCharsFull();
+    //        //string c = toChars();
+    //        //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s>\n", parent.toCharsFull(), toChars());
+    //        //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s> scope = <%s>\n", parent.toCharsFull(), toChars(), _scope.scopesym.toChars());
+    //        string r = format("%s.%s", to!string(parent.toCharsFull()), to!string(toChars()));
+    //        //writef(">>>>>>>>>>>> in toCharsFull >>>>>> r = <%s>\n", r);
+    //        return toStringz(r);
+    //        //return parent.toCharsFull() ~ "::" ~ toChars();
+    //    }
+    //    //printf(">>>>>>>>>>>> in toCharsFull >>>>>> this = <%s>\n", toChars());
+    //    return toChars();
+    //}
+
     override const(char)* toCharsFull()
     {
-        //import core.stdc.string : strcat;
-        import std.conv : to;
-        import std.string : toStringz;
-        import std.format;
-        import std.stdio;
         if (parent)
         {
-            //string p = parent.toCharsFull();
-            //string c = toChars();
-            //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s>\n", parent.toCharsFull(), toChars());
-            //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s> scope = <%s>\n", parent.toCharsFull(), toChars(), _scope.scopesym.toChars());
-            string r = format("%s.%s", to!string(parent.toCharsFull()), to!string(toChars()));
-            //writef(">>>>>>>>>>>> in toCharsFull >>>>>> r = <%s>\n", r);
+            import std.conv : to;
+            import std.string : toStringz;
+            import std.format;
+            string r = to!string(parent.toCharsFull()) ~ '.' ~ to!string(toChars());
+            //printf("in Dsymbol toCharsFull %s\n", toStringz(r));
             return toStringz(r);
-            //return parent.toCharsFull() ~ "::" ~ toChars();
         }
-        //printf(">>>>>>>>>>>> in toCharsFull >>>>>> this = <%s>\n", toChars());
+        //printf("in Dsymbol toCharsFull %s\n", toChars());
         return toChars();
     }
 

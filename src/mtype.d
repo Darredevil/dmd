@@ -61,7 +61,6 @@ extern (C++) __gshared int Tptrdiff_t = Tint32;
 
 enum SIZE_INVALID = (~cast(d_uns64)0);   // error return from size() functions
 
-
 /***************************
  * Return !=0 if modfrom can be implicitly converted to modto
  */
@@ -885,13 +884,9 @@ extern (C++) abstract class Type : RootObject
         import std.stdio;
         if (nextOf())
         {
-            //string p = parent.toCharsFull();
-            //string c = toChars();
-            //printf(">>>>>>>>>>>> in toCharsFull >>>>>> parent = <%s> this = <%s>\n", parent.toCharsFull(), toChars());
-            string r = format("%s.%s", to!string(nextOf().toCharsFull()), to!string(toPrettyChars(true)));
-            //writef(">>>>>>>>>>>> in toCharsFull >>>>>> r = <%s>\n", r);
+            //string r = format("%s.%s", to!string(nextOf().toCharsFull()), to!string(toPrettyChars(true)));
+            string r = to!string(nextOf().toCharsFull()) ~ '.' ~ to!string(toPrettyChars(true));
             return toStringz(r);
-            //return parent.toCharsFull() ~ "::" ~ toChars();
         }
         //printf(">>>>>>>>>>>> in toCharsFull >>>>>> this = <%s>\n", toChars());
         return toPrettyChars(true);
@@ -8357,6 +8352,115 @@ extern (C++) final class TypeStruct : Type
         assert(0);
     }
 
+    override const(char)* toCharsFull()
+    {
+        import std.conv : to;
+        import std.string : toStringz;
+        import std.format;
+        import std.stdio;
+        string s = to!string(super.toCharsFull());
+
+
+
+
+        s ~= '[';
+
+        writef("TypeStruct toCharsFull s = <%s>\n", s);
+        //for (size_t j = 0; j < tiargs.dim; j++)
+        //{
+        //    RootObject o = (*tiargs)[j];
+        //    Type ta = isType(o);
+        //    Expression ea = isExpression(o);
+        //    Dsymbol sa = isDsymbol(o);
+        //    Tuple va = isTuple(o);
+        //    //printf("\ttiargs[%d] = ta %p, ea %p, sa %s, va %p\n", j, ta, ea, sa ? sa.toCharsFull() : null, va);
+        //    if (sa)
+        //        s ~= to!string(sa.toCharsFull()) ~ ';';
+        //    else
+        //        s ~= "null;";
+        //}
+
+
+        //for (size_t i = 0; i < sym.members.dim; i++)
+        //{
+        //    auto m = (*sym.members)[i];
+        //    //printf("adding member '%s' to '%s'\n", s.toChars(), this.toChars());
+        //    if (m)
+        //        s ~= to!string(m.toChars()) ~ ';';
+        //    else
+        //        s ~= "null;";
+
+        //}
+
+        for (size_t i = 0; i < sym.fields.dim; i++)
+        {
+            //VarDeclaration v = sym.fields[i];
+            //if (v) {
+            //    //s ~= to!string(v.toCharsFull()) ~ ';';
+            //    s ~= to!string(v.toChars()) ~ ';';
+            //    //writef("TypeStruct type toCharsFull s = <%s>\n", v.type.toChars());
+            //}
+            //else
+            //    s ~= "null;";
+
+
+            RootObject o = sym.fields[i];
+            Type ta = isType(o);
+            Expression ea = isExpression(o);
+            Dsymbol sa = isDsymbol(o);
+            Tuple va = isTuple(o);
+            printf("\tsym.fields[%d] = ta %p, ea %p, sa %s, va %p\n", i, ta, ea, sa ? sa.toCharsFull() : null, va);
+            writef("TypeStruct sym.fields[%d] isTemplateInstance  = %s\n", i, sa.isTemplateInstance() ? "true" : "false");
+            writef("TypeStruct sym.fields[%d] isTemplateDeclaration  = %s\n", i, sa.isTemplateDeclaration() ? "true" : "false");
+            printf("TypeStruct sym.fields[%d]  %s\n", i, sa.kind());
+            writef("TypeStruct sym.fields[%d] isTemplateMixin  = %s\n", i, sa.isTemplateMixin ? "true" : "false");
+            writef("TypeStruct sym.fields[%d] isVarDeclaration  = %s\n", i, sa.isVarDeclaration() ? "true" : "false");
+            auto v = sa.isVarDeclaration();
+            auto p = v.toParent();
+            printf("%s p = %s\n", p.kind(), p.toCharsFull());
+            auto p2 = p.toParent();
+            printf("%s p2 = %s\n", p2.kind(), p2.toCharsFull());
+            if (p2.isTemplateInstance())
+                printf("template arg[0]: %s\n", p2.isTemplateInstance().tdtypes[0].toCharsFull);
+            auto p3 = p2.toParent();
+            printf("%s p3 = %s\n", p3.kind(), p3.toCharsFull());
+            //writef("TypeStruct sym.fields[%d] isTemplateInstance  = %s\n", i, typeof(sa));
+            //if (sa)
+            //    s ~= to!string(sa.toCharsFull()) ~ ';';
+            //else if (ta)
+            //    s ~= to!string(ta.toCharsFull()) ~ ';';
+            if (o)
+            {
+                //if (sa) {
+                //    printf("TypeStruct sym.fields[%d] isTemplateTypeParameter \n", i);
+                //}
+                /* if it's a TemplateInstace look only at the template argument */
+                if(sa && sa.isVarDeclaration())
+                {
+                    auto t = sa.toParent();
+                    while(!t.isTemplateInstance())
+                        t = t.toParent();
+                    if(t.isTemplateInstance())
+                        s ~= to!string(t.isTemplateInstance().tdtypes[i].toCharsFull()) ~ ';';
+                }
+                else if (sa && sa.isTemplateInstance())
+                {
+                    printf("TypeStruct sym.fields[%d] isTemplateTypeParameter \n", i);
+                    //s ~= to!string((*sa.isTemplateInstance().tiargs)[i].toCharsFull()) ~ ';';
+                    s ~= to!string(sa.isTemplateInstance().tdtypes[i].toCharsFull()) ~ ';';
+                }
+                else
+                    s ~= to!string(o.toCharsFull()) ~ ';';
+            }
+        }
+
+        s ~= ']';
+
+        writef("TypeStruct toCharsFull.v2 s = <%s>\n", s);
+
+        return toStringz(s);
+    }
+
     extern (D) this(StructDeclaration sym)
     {
         super(Tstruct);
@@ -10237,6 +10341,7 @@ extern (C++) final class Parameter : RootObject
 
     extern (D) this(StorageClass storageClass, Type type, Identifier ident, Expression defaultArg)
     {
+
         this.type = type;
         this.ident = ident;
         this.storageClass = storageClass;

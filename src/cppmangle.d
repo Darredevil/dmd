@@ -88,42 +88,13 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
         {
             printf("substitute <%s> toCharsFull() = <%s>\n", p ? p.toChars() : null, p ? p.toCharsFull() : null);
             Type t = cast(Type)p;
-            //Dsymbol parent = (cast(Dsymbol)p).toParent();
-            //Dsymbol parent = null;
             printf("t.deco = '%s'\n", t.deco);
-            //import std.stdio;
-            //writef("object type = <%s>\n", typeof(p).stringof);
-            //writef("dynamic object type = <%s>\n", typeid(typeof(p)));
-            //writef("dynamic1.2 object type = <%s>\n", p.classinfo.name);
-            //writef("dynamic2 object type = <%s>\n", typeid(p));
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
                     printf("    component[%d] = <%s> toCharsFull = <%s> \n", i, components[i] ? components[i].toChars() : null, components[i] ? components[i].toCharsFull() : null);
-                    //p.myEquals(components[i]);
-                    //import core.stdc.string : strcmp;
-                    //if (strcmp(p.toChars(), "pair!(void*, void*)") == 0 && strcmp(components[i].toChars(), "pair!(void*, void*)") == 0) {//pair!(void*, void*)
-                    //    printf("---------------MATCH ----------------\n");
-                    //    // Found problem, the components[i] has no .deco field assigned
-                    //    // need to find where it is created and sort this out
-                    //    p.myEquals(components[i]);
-                    //}
-                    //if (p.myEquals(components[i]))
-                    //if (p == components[i])
                     import core.stdc.string : strcmp;
                     if (p == components[i] || (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(p.toCharsFull(), components[i].toCharsFull()) == 0))
-
-                    //Dsymbol p1 = cast(Dsymbol)p;
-                    //Dsymbol c1 = cast(Dsymbol)components[i];
-                    //printf("c1 %s\n", c1 ? c1.toChars() : null);
-                    //printf("p1 %s\n", p1 ? p1.toChars() : null);
-                    //printf("c1 %s\n", c1 ? c1.ident.toChars() : null);
-                    //printf("p1 %s\n", p1 ? p1.ident.toChars() : null);
-                    //if (strcmp(p1.ident.toChars(), c1.ident.toChars()) == 0)
-                    //if (parent && (cast(Dsymbol)components[i]).toParent() && strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(parent.toChars(), (cast(Dsymbol)components[i]).toParent().toChars()) == 0
-                        //|| (!parent || !(cast(Dsymbol)components[i]).toParent()) && strcmp(p.toChars(), components[i].toChars()) == 0)
-                    //if (strcmp(p.toChars(), components[i].toChars()) == 0)
-                    //if (strcmp(p.toChars(), components[i].toChars()) == 0 && strcmp(t.deco, (cast(Type)components[i]).deco) == 0)
                     {
                             printf("\tmatch\n");
                             /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
@@ -239,7 +210,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
                     buf.printf("%d%s", strlen(name), name);
                     printf("% *c source_name(%s) (name = %s) (line %d)\n", indent, ' ', s.toChars(), name, __LINE__);
-                } else if (!skipname && skipname2 && !substitute(ti.tempdecl.toAlias().ident))
+                //} else if (!skipname && skipname2 && !substitute(ti.tempdecl.toAlias().ident))
+                } else if (!skipname && skipname2)
                 {
                     printf("% *c source_name(%s) ti.tempdecl.toAlias().ident(%s) (line %d)\n", indent, ' ', ti.tempdecl.toAlias().ident.toChars(), s.toChars(), __LINE__);
                     const(char)* name = ti.tempdecl.toAlias().ident.toChars();
@@ -758,7 +730,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             int paramsCppMangleDg(size_t n, Parameter fparam)
             {
                 //printf("in mangle_function 6\n");
-                printf("% *c in paramsCppMangleDg 6 (line %d)\n", indent, ' ', __LINE__);
+                printf("% *c in paramsCppMangle 6 (line %d)\n", indent, ' ', __LINE__);
                 indent += 4;
                 Type t = fparam.type.merge2();
                 if (fparam.storageClass & (STCout | STCref)) {
