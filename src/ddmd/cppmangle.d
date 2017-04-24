@@ -67,14 +67,14 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         bool substitute(RootObject p)
         {
-            //printf("substitute %s\n", p ? p.toChars() : null);
+            printf("substitute %s\n", p ? p.toChars() : null);
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
-                    //printf("    component[%d] = %s\n", i, components[i] ? components[i].toChars() : null);
+                    printf("    component[%d] = %s\n", i, components[i] ? components[i].toChars() : null);
                     if (p == components[i])
                     {
-                        //printf("\tmatch\n");
+                        printf("\tmatch\n");
                         /* Sequence is S_, S0_, .., S9_, SA_, ..., SZ_, S10_, ...
                          */
                         buf.writeByte('S');
@@ -103,14 +103,14 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void store(RootObject p)
         {
-            //printf("store %s\n", p ? p.toChars() : "null");
+            printf("store %s\n", p ? p.toChars() : "null");
             if (components_on)
                 components.push(p);
         }
 
         void source_name(Dsymbol s, bool skipname = false)
         {
-            //printf("source_name(%s)\n", s.toChars());
+            printf("source_name(%s)\n", s.toChars());
             TemplateInstance ti = s.isTemplateInstance();
             if (ti)
             {
@@ -234,6 +234,8 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     buf.writeByte('E');
                 }
                 buf.writeByte('E');
+                store(ti);
+                printf("exit source_name(%s)\n", s.toChars());
                 return;
             }
             else
@@ -241,14 +243,17 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 const(char)* name = s.ident.toChars();
                 buf.printf("%d%s", strlen(name), name);
             }
+            printf("exit source_name(%s)\n", s.toChars());
         }
 
         void prefix_name(Dsymbol s)
         {
-            //printf("prefix_name(%s)\n", s.toChars());
+            Dsymbol aux = s;
+            printf("prefix_name(%s)\n", s.toChars());
             if (!substitute(s))
             {
                 Dsymbol p = s.toParent();
+                printf("parent prefix_name (%s) = (%s)\n", s.toChars(), p.toChars());
                 if (p && p.isTemplateInstance())
                 {
                     s = p;
@@ -268,10 +273,13 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     else
                         prefix_name(p);
                 }
-                if (!(s.ident == Id.std && is_initial_qualifier(s)))
-                    store(s);
+                if (!(s.ident == Id.std && is_initial_qualifier(s)) && !s.isTemplateInstance())
+                {
+                        store(s);
+                }
                 source_name(s);
             }
+            printf("exit prefix_name(%s)\n", aux.toChars());
         }
 
         /* Is s the initial qualifier?
@@ -292,8 +300,9 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void cpp_mangle_name(Dsymbol s, bool qualified)
         {
-            //printf("cpp_mangle_name(%s, %d)\n", s.toChars(), qualified);
+            printf("cpp_mangle_name(%s, %d)\n", s.toChars(), qualified);
             Dsymbol p = s.toParent();
+            printf("parent cpp_mangle_name(%s ==  %s)\n", p.toChars(), p.kind());
             Dsymbol se = s;
             bool dont_write_prefix = false;
             if (p && p.isTemplateInstance())
@@ -372,6 +381,17 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                         source_name(se);
                     }
                 }
+                //else if (is_initial_qualifier(p))
+                else if (is_initial_qualifier(p))
+                {
+                    printf("cpp_mangle_name else if => (p = %s, se =  %s)\n", p.toChars(), se.toChars());
+                    //buf.writeByte('N');
+                    //if (!dont_write_prefix)
+                    //    prefix_name(p);
+                    if (!substitute(se))
+                        source_name(se);
+                    //buf.writeByte('E');
+                }
                 else
                 {
                     buf.writeByte('N');
@@ -383,7 +403,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             }
             else
                 source_name(se);
-            store(s);
+            printf("kind of (%s == %s), isTemplateInstance = %s\n", s.toChars(), s.kind(), s.isTemplateInstance());
+            //import core.stdc.string : strcmp;
+                store(s);
+            printf("exit cpp_mangle_name(%s, %d)\n", s.toChars(), qualified);
         }
 
         void mangle_variable(VarDeclaration d, bool is_temp_arg_ref)
@@ -418,7 +441,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
 
         void mangle_function(FuncDeclaration d)
         {
-            //printf("mangle_function(%s)\n", d.toChars());
+            printf("mangle_function(%s)\n", d.toChars());
             /*
              * <mangled-name> ::= _Z <encoding>
              * <encoding> ::= <function name> <bare-function-type>
