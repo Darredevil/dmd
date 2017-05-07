@@ -65,9 +65,19 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 assert(0);
         }
 
-        bool substitute(RootObject p)
+        bool substitute(T)(T _p)
         {
+            RootObject p = _p;
             printf("substitute %s\n", p ? p.toChars() : null);
+
+            static if (is(typeof(_p.toParent())))
+            {
+                Dsymbol parent = (cast(Dsymbol)p).toParent();
+            while(parent) {
+                printf("parent = %s", parent.toChars());
+                parent = parent.toParent();
+            }}
+            static if (is(typeof(_p.kind()))) printf("%s\n", _p.kind());
             if (components_on)
                 for (size_t i = 0; i < components.dim; i++)
                 {
@@ -101,9 +111,10 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             return false;
         }
 
-        void store(RootObject p)
+        void store(T : RootObject)(T p, int line = __LINE__)
         {
-            printf("store %s\n", p ? p.toChars() : "null");
+static if (is(typeof(p.kind())))            printf("store %s, line = %d, %s\n", p ? p.toChars() : "null", line, p.kind());
+    else        printf("store %s, line = %d, %s\n", p ? p.toChars() : "null", line, T.stringof.ptr);
             if (components_on)
                 components.push(p);
         }
@@ -240,6 +251,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             }
             else
             {
+                // TODO check is inside TI
                 const(char)* name = s.ident.toChars();
                 buf.printf("%d%s", strlen(name), name);
             }
@@ -305,8 +317,15 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
             printf("parent cpp_mangle_name(%s ==  %s)\n", p.toChars(), p.kind());
             Dsymbol se = s;
             bool dont_write_prefix = false;
+            bool inTemplateIntance;
+            bool inTemplateDeclaration = p && p.isTemplateDeclaration();
+            if (p && p.isTemplateDeclaration())
+            {
+                p = p.toParent();
+            }
             if (p && p.isTemplateInstance())
             {
+                inTemplateIntance = true;
                 se = p;
                 if (exist(p.isTemplateInstance().tempdecl))
                     dont_write_prefix = true;
@@ -382,7 +401,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                     }
                 }
                 //else if (is_initial_qualifier(p))
-                else if (is_initial_qualifier(p))
+                else if (false && is_initial_qualifier(p))
                 {
                     printf("cpp_mangle_name else if => (p = %s, se =  %s)\n", p.toChars(), se.toChars());
                     //buf.writeByte('N');
@@ -405,6 +424,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 source_name(se);
             printf("kind of (%s == %s), isTemplateInstance = %s\n", s.toChars(), s.kind(), s.isTemplateInstance());
             //import core.stdc.string : strcmp;
+            if (!inTemplateIntance && !inTemplateDeclaration)
                 store(s);
             printf("exit cpp_mangle_name(%s, %d)\n", s.toChars(), qualified);
         }
@@ -933,7 +953,7 @@ static if (TARGET_LINUX || TARGET_OSX || TARGET_FREEBSD || TARGET_OPENBSD || TAR
                 cpp_mangle_name(t.sym, t.isConst());
             }
             if (t.isConst())
-                store(null);
+                assert(0);
             store(t);
         }
 
